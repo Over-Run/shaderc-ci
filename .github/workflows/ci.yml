@@ -39,7 +39,7 @@ jobs:
           cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
       - name: Build
         run: |
-          cmake --build build --parallel 4
+          cmake --build build --parallel 4 --target shaderc_shared
           strip build/libshaderc/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -100,7 +100,7 @@ jobs:
         run: PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/lib/${{matrix.TRIPLET}}/pkgconfig CC=${{matrix.TRIPLET}}-gcc cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
       - name: Build
         run: |
-          cmake --build build --parallel 4
+          cmake --build build --parallel 4 --target shaderc_shared
           ${{matrix.TRIPLET}}-strip build/libshaderc/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -128,10 +128,10 @@ jobs:
           shell: bash
           environment_variables: CI_PARAMS
           run: |
-            sudo pkg install -y cmake gmake pkgconf python312
+            sudo pkg install -y cmake gmake pkgconf python312 git
             python3.12 ./utils/git-sync-deps
             cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
-            cmake --build build --parallel 4
+            cmake --build build --parallel 4 --target shaderc_shared
             strip build/libshaderc/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -162,7 +162,7 @@ jobs:
         run: cmake -B build $CI_PARAMS ${{matrix.CMAKE_PARAMS}}
       - name: Build
         run: |
-          cmake --build build --parallel 4
+          cmake --build build --parallel 4 --target shaderc_shared
           strip -u -r build/libshaderc/libshaderc_shared.dylib
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -195,7 +195,7 @@ jobs:
       - name: Configure build
         run: cmake -B build -G "Visual Studio 17 2022" -A ${{matrix.PLATFORM}} %CI_PARAMS% -DUSE_MSVC_RUNTIME_LIBRARY_DLL=OFF
       - name: Build
-        run: cmake --build build --parallel 4 --config Release
+        run: cmake --build build --parallel 4 --config Release --target shaderc_shared
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
