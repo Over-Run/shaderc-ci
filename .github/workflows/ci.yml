@@ -8,7 +8,7 @@ on:
       - main
 
 env:
-  CI_PARAMS: -DSHADERC_SKIP_TESTS=ON -DSHADERC_SKIP_EXAMPLES=ON -DSHADERC_SKIP_EXECUTABLES=ON -DSHADERC_SKIP_COPYRIGHT_CHECK=ON -DSPIRV_TOOLS_BUILD_STATIC=OFF -DSPIRV_SKIP_EXECUTABLES=ON -DCMAKE_BUILD_TYPE=Release
+  CI_PARAMS: -DSHADERC_SKIP_TESTS=ON -DSHADERC_SKIP_EXAMPLES=ON -DSHADERC_SKIP_EXECUTABLES=ON -DSHADERC_SKIP_COPYRIGHT_CHECK=ON -DSPIRV_TOOLS_BUILD_STATIC=OFF -DSPIRV_SKIP_EXECUTABLES=ON -DSKIP_GLSLANG_INSTALL=ON -DCMAKE_BUILD_TYPE=Release
 
 jobs:
   linux:
@@ -60,18 +60,22 @@ jobs:
           - ARCH: arm32
             CROSS_ARCH: armhf
             TRIPLET: arm-linux-gnueabihf
+            CMAKE_FLAGS:
           # ----
           - ARCH: arm64
             CROSS_ARCH: arm64
             TRIPLET: aarch64-linux-gnu
+            CMAKE_FLAGS:
           # ----
           - ARCH: ppc64le
             CROSS_ARCH: ppc64el
             TRIPLET: powerpc64le-linux-gnu
+            CMAKE_FLAGS:
           # ----
           - ARCH: riscv64
             CROSS_ARCH: riscv64
             TRIPLET: riscv64-linux-gnu
+            CMAKE_FLAGS: LDFLAGS=-pthread
     env:
       CI_ARCH: ${{matrix.ARCH}}
     defaults:
@@ -97,7 +101,7 @@ jobs:
           sudo dpkg --add-architecture ${{matrix.CROSS_ARCH}}
           sudo apt-get update || true
       - name: Configure build
-        run: PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/lib/${{matrix.TRIPLET}}/pkgconfig CC=${{matrix.TRIPLET}}-gcc cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
+        run: PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/lib/${{matrix.TRIPLET}}/pkgconfig CC=${{matrix.TRIPLET}}-gcc CXX=${{matrix.TRIPLET}}-g++ ${{matrix.CMAKE_FLAGS}} cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
       - name: Build
         run: |
           cmake --build build --parallel 4 --target shaderc_shared
