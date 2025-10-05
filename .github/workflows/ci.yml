@@ -8,7 +8,7 @@ on:
       - main
 
 env:
-  CI_PARAMS: -DSHADERC_SKIP_TESTS=ON -DSHADERC_SKIP_EXAMPLES=ON -DSHADERC_SKIP_EXECUTABLES=ON -DSHADERC_SKIP_COPYRIGHT_CHECK=ON -DCMAKE_BUILD_TYPE=Release
+  CI_PARAMS: -DSHADERC_SKIP_TESTS=ON -DSHADERC_SKIP_EXAMPLES=ON -DSHADERC_SKIP_EXECUTABLES=ON -DSHADERC_SKIP_COPYRIGHT_CHECK=ON -DSPIRV_TOOLS_BUILD_STATIC=OFF -DSPIRV_SKIP_EXECUTABLES=ON -DCMAKE_BUILD_TYPE=Release
 
 jobs:
   linux:
@@ -39,7 +39,7 @@ jobs:
           cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
       - name: Build
         run: |
-          cmake --build build --parallel
+          cmake --build build --parallel 2
           strip build/src/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -100,7 +100,7 @@ jobs:
         run: PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/lib/${{matrix.TRIPLET}}/pkgconfig CC=${{matrix.TRIPLET}}-gcc cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
       - name: Build
         run: |
-          cmake --build build --parallel
+          cmake --build build --parallel 2
           ${{matrix.TRIPLET}}-strip build/src/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -128,10 +128,10 @@ jobs:
           shell: bash
           environment_variables: CI_PARAMS
           run: |
-            ./utils/git-sync-deps
-            sudo pkg install -y cmake gmake pkgconf
+            sudo pkg install -y cmake gmake pkgconf python312
+            python ./utils/git-sync-deps
             cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
-            cmake --build build --parallel
+            cmake --build build --parallel 2
             strip build/src/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -162,7 +162,7 @@ jobs:
         run: cmake -B build $CI_PARAMS ${{matrix.CMAKE_PARAMS}}
       - name: Build
         run: |
-          cmake --build build --parallel
+          cmake --build build --parallel 2
           strip -u -r build/src/libshaderc_shared.dylib
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -191,11 +191,11 @@ jobs:
           fetch-depth: 3
       - name: Sync deps
         run: |
-          ./utils/git-sync-deps
+          python ./utils/git-sync-deps
       - name: Configure build
         run: cmake -B build -G "Visual Studio 17 2022" -A ${{matrix.PLATFORM}} %CI_PARAMS% -DUSE_MSVC_RUNTIME_LIBRARY_DLL=OFF
       - name: Build
-        run: cmake --build build --parallel --config Release
+        run: cmake --build build --parallel 2 --config Release
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
