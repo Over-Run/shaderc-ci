@@ -39,13 +39,13 @@ jobs:
           cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
       - name: Build
         run: |
-          cmake --build build --parallel 2
-          strip build/src/libshaderc_shared.so
+          cmake --build build --parallel 4
+          strip build/libshaderc/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{matrix.ARCH}}
-          path: build/src/libshaderc_shared.so
+          path: build/libshaderc/libshaderc_shared.so
           if-no-files-found: error
 
   linux-cross:
@@ -100,13 +100,13 @@ jobs:
         run: PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/lib/${{matrix.TRIPLET}}/pkgconfig CC=${{matrix.TRIPLET}}-gcc cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
       - name: Build
         run: |
-          cmake --build build --parallel 2
-          ${{matrix.TRIPLET}}-strip build/src/libshaderc_shared.so
+          cmake --build build --parallel 4
+          ${{matrix.TRIPLET}}-strip build/libshaderc/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{matrix.ARCH}}
-          path: build/src/libshaderc_shared.so
+          path: build/libshaderc/libshaderc_shared.so
           if-no-files-found: error
 
   freebsd-cross:
@@ -129,15 +129,15 @@ jobs:
           environment_variables: CI_PARAMS
           run: |
             sudo pkg install -y cmake gmake pkgconf python312
-            python ./utils/git-sync-deps
+            python3.12 ./utils/git-sync-deps
             cmake -B build $CI_PARAMS -DCMAKE_C_FLAGS="-std=c99 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
-            cmake --build build --parallel 2
-            strip build/src/libshaderc_shared.so
+            cmake --build build --parallel 4
+            strip build/libshaderc/libshaderc_shared.so
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: freebsd-x64
-          path: build/src/libshaderc_shared.so
+          path: build/libshaderc/libshaderc_shared.so
           if-no-files-found: error
 
   macos:
@@ -148,7 +148,7 @@ jobs:
         ARCH: [x64, arm64]
         include:
           - ARCH: x64
-            CMAKE_PARAMS: -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11 -DCMAKE_OSX_ARCHITECTURES=x86_64
+            CMAKE_PARAMS: -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_OSX_ARCHITECTURES=x86_64
           - ARCH: arm64
             CMAKE_PARAMS: -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_OSX_ARCHITECTURES=arm64
     steps:
@@ -162,13 +162,13 @@ jobs:
         run: cmake -B build $CI_PARAMS ${{matrix.CMAKE_PARAMS}}
       - name: Build
         run: |
-          cmake --build build --parallel 2
-          strip -u -r build/src/libshaderc_shared.dylib
+          cmake --build build --parallel 4
+          strip -u -r build/libshaderc/libshaderc_shared.dylib
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{matrix.ARCH}}
-          path: build/src/libshaderc_shared.dylib
+          path: build/libshaderc/libshaderc_shared.dylib
           if-no-files-found: error
 
   windows:
@@ -195,7 +195,7 @@ jobs:
       - name: Configure build
         run: cmake -B build -G "Visual Studio 17 2022" -A ${{matrix.PLATFORM}} %CI_PARAMS% -DUSE_MSVC_RUNTIME_LIBRARY_DLL=OFF
       - name: Build
-        run: cmake --build build --parallel 2 --config Release
+        run: cmake --build build --parallel 4 --config Release
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
